@@ -1,0 +1,13 @@
+name = "CompositeLD"
+uuid = "7e0a29c1-5b19-4a13-8074-ff0070be1d71"
+authors = ["Samuel Mathieu"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
