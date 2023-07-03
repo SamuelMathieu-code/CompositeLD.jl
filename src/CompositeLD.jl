@@ -1,5 +1,13 @@
 module CompositeLD
 
-# Write your package code here.
+
+export ld_r², mat_r², getLDmat, formatSnpData!
+export clump
+export getStrongLD
+
+
+include("ld.jl")
+include("clump.jl")
+include("getStrongLD.jl")
 
 end
