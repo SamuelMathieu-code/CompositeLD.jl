@@ -1,6 +1,7 @@
 using CompositeLD
 using Test
+using SnpArrays
 
-@testset "CompositeLD.jl" begin
-    # Write your tests here.
-end
+include("test_ld.jl")
+include("test_clump.jl")
+include("test_getStrongLD.jl")

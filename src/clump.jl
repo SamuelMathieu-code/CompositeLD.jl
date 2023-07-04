@@ -1,15 +1,17 @@
 using SnpArrays
+using Base.Threads
 
 """
 Implementation of the clumping algoritm prioritising first snps in given Vector and formated Genotypes SnpData (see formatSnpData!)
     returns a vector of booean indication if each given snp is kept
 """
 function clump(ref_genotypes::SnpData, 
-               snps::AbstractVector{<:Tuple{Integer, Integer}}, 
-               r2_tresh::Float64 = 0.1
+               snps::Union{AbstractVector{<:Tuple{Integer, Integer}}, AbstractVector{<:AbstractString}}; 
+               r2_tresh::Float64 = 0.1,
+               formated = false
                )::Vector{Bool}
     
-    r2_mat, indx_v_b = getLDmat(ref_genotypes, snps)
+    r2_mat, indx_v_b = getLDmat(ref_genotypes, snps, formated)
     idx_on_mat = accumulate(+, indx_v_b)
     
     for i in 1:(lastindex(snps)-1)

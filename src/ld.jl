@@ -88,8 +88,48 @@ function ld_r²(snp1::Vector{UInt8}, snp2::Vector{UInt8})::Float64
 
 end
 
+
 function ld_r²(snp1::Integer, snp2::Integer, ref::AbstractSnpArray)::Float64
     return ld_r²(ref[:, snp1], ref[:, snp2])    
+end
+
+
+function ld_r²(snp1::AbstractString, snp2::AbstractString, ref::SnpData; formated = false)::Float64
+    if !formated
+        formatSnpData!(ref, :snpid)
+    end
+
+    id1 = searchsortedfirst(ref.snp_info.snpid, snp1)
+    id2 = searchsortedfirst(ref.snp_info.snpid, snp2)
+
+    if (id1 > lastindex(ref.snp_info.snpid) || 
+        id2 > lastindex(ref.snp_info.snpid) ||
+        ref.snp_info.snpid[id1] != snp1 ||
+        ref.snp_info.snpid[id2] != snp2)
+
+        return NaN
+    else
+        return ld_r²(ref.snp_info.idx[id1], ref.snp_info.idx[id2], ref.snparray)
+    end
+end
+
+function ld_r²(snp1::Tuple{Integer, Integer}, snp2::Tuple{Integer, Integer}, ref::SnpData, formated = false)
+    if !formated
+        formatSnpData!(ref)
+    end
+
+    id1 = searchsortedfirst(ref.snp_info.chr_pos, snp1)
+    id2 = searchsortedfirst(ref.snp_info.chr_pos, snp2)
+
+    if (id1 > lastindex(ref.snp_info.chr_pos) || 
+        id2 > lastindex(ref.snp_info.chr_pos) ||
+        ref.snp_info.chr_pos[id1] != snp1 ||
+        ref.snp_info.chr_pos[id2] != snp2)
+        
+        return NaN
+    else
+        return ld_r²(ref.snp_info.idx[id1], ref.snp_info.idx[id2], ref.snparray)
+    end
 end
 
 
@@ -114,8 +154,13 @@ Get correlation Matrix for specifies snps (tuple of the form (chr, pos)
     given reference genotype SnpData.
 """
 function getLDmat(ref_genotypes::SnpData, 
-                  snps::AbstractVector{<:Tuple{Integer, Integer}}
+                  snps::AbstractVector{<:Tuple{Integer, Integer}},
+                  formated::Bool = false
                   )::Tuple{Matrix{Float64}, Vector{Bool}}
+
+    if !formated
+        formatSnpData!(ref_genotypes)
+    end
 
     snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
     @threads for (i, chr_pos_sing) in collect(enumerate(snps))
@@ -131,17 +176,42 @@ function getLDmat(ref_genotypes::SnpData,
 end
 
 
+function getLDmat(ref_genotypes::SnpData,
+    snps::AbstractVector{<:AbstractString},
+    formated::Bool = false
+    )::Tuple{Matrix{Float64}, Vector{Bool}}
+    
+    if !formated
+        formatSnpData!(ref_genotypes, sort = :snpid)
+    end
+
+    snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
+    @threads for (i, chr_pos_sing) in collect(enumerate(snps))
+        local j = searchsortedfirst(ref_genotypes.snp_info.snpid, chr_pos_sing)
+        if j > lastindex(ref_genotypes.snp_info.snpid) || ref_genotypes.snp_info.snpid[j] != chr_pos_sing
+            j = -1
+        end
+        snps_indx[i] = j
+    end
+    kept_indx = snps_indx[snps_indx .> 0]
+
+    return mat_r²(ref_genotypes.snparray, kept_indx), snps_indx .> 0
+end
+
+
 """
 format Genotype information contained in SnpData for optimised snp search based on chromosome position.
 Adds a column of tuple (chr::Int8, pos::Int) in snp_info and sorts snp_info accordingly.
     returns nothing
 """
-function formatSnpData!(Genotypes::SnpData)
-    Genotypes.snp_info.idx = collect(1:size(Genotypes.snp_info, 1))
+function formatSnpData!(Genotypes::SnpData, sort::Symbol = :chr_pos)
+    if !hasproperty(Genotypes.snp_info, :idx)
+        Genotypes.snp_info.idx = collect(1:size(Genotypes.snp_info, 1))
+    end
     Genotypes.snp_info.chr_pos = collect(
             zip(parse.(Int8, Genotypes.snp_info.chromosome), 
                 Genotypes.snp_info.position)
         )
-    sort!(Genotypes.snp_info, :chr_pos)
+    sort!(Genotypes.snp_info, sort)
 end
 
