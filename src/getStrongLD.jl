@@ -26,7 +26,7 @@ function getStrongLD(ref_genotypes::SnpData,
     kept_pos = ref_genotypes.snp_info.position[snps_indx]
 
     res = Vector{Vector{Int}}(undef, length(kept_idx))
-    for i in eachindex(kept_idx)
+    @threads for i in eachindex(kept_idx)
         t1 = ref_genotypes.snp_info.chromosome .== kept_chr[i]
         t2 = abs.(ref_genotypes.snp_info.position .- kept_pos[i]) .< window
         idx_v_b = t1 .& t2
@@ -85,7 +85,7 @@ function getStrongLD(ref_genotypes::SnpData,
 
 
     res = Vector{Vector{Int}}(undef, length(kept_idx))
-    for i in eachindex(kept_idx)
+    @threads for i in eachindex(kept_idx)
         chr, pos = kept_chr[i], kept_pos[i]
         t1 = ref_genotypes.snp_info.chromosome .== chr
         t2 = abs.(ref_genotypes.snp_info.position .- pos) .< window
