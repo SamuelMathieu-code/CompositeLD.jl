@@ -6,8 +6,8 @@ function getStrongLD(ref_genotypes::SnpData,
                      snps::AbstractVector{<:Tuple{Integer, Integer}}, 
                      r2_tresh::Float64 = 0.8,
                      window::Int64 = 500000,
-                     snpDataFormated::Bool = true)
-    if !snpDataFormated
+                     formated::Bool = true)
+    if !formated
         formatSnpData!(ref_genotypes)
     end
 
@@ -30,7 +30,7 @@ function getStrongLD(ref_genotypes::SnpData,
         kept = corr .> r2_tresh
         res[i] = indexes[kept]
     end
-    res2 = Folds.reduce(vcat, res)
+    res2 = Folds.reduce(vcat, res, init = [])
 
     return ref_genotypes.snp_info.chr_pos[res2]
     
@@ -41,8 +41,8 @@ function getStrongLD(ref_genotypes::AbstractVector{SnpData},
                      snps::AbstractVector{<:Tuple{Integer, Integer}}; 
                      r2_tresh::Float64 = 0.8,
                      window::Int64 = 500000,
-                     snpDataFormated::Bool = true)
-    if !snpDataFormated
+                     formated::Bool = true)
+    if !formated
     formatSnpData!.(ref_genotypes)
     end
 
@@ -76,7 +76,7 @@ function getStrongLD(ref_genotypes::AbstractVector{SnpData},
         res_chrpos[i] = ref_genotypes[kept_chr[i]].snp_info.chr_pos[res[i]]
     end
 
-    return kept_chr, Folds.reduce(vcat, res_chrpos, init = [])
+    return Folds.reduce(vcat, res_chrpos, init = [])
 
 end
 
@@ -85,8 +85,8 @@ function getStrongLD(ref_genotypes::SnpData,
                      snps::AbstractVector{<:AbstractString}, 
                      r2_tresh::Float64 = 0.8,
                      window::Int64 = 500000,
-                     snpDataFormated::Bool = true)
-    if !snpDataFormated
+                     formated::Bool = true)
+    if !formated
         formatSnpData!(ref_genotypes, :snpid)
     end
 
@@ -118,11 +118,11 @@ end
 
 
 function getStrongLD(ref_genotypes::AbstractVector{SnpData}, 
-                     snps::AbstractVector{<:AbstractString}; 
+                     snps::AbstractVector{<:AbstractString};
                      r2_tresh::Float64 = 0.8,
                      window::Int64 = 500000,
-                     snpDataFormated::Bool = true)
-    if !snpDataFormated
+                     formated::Bool = true)
+    if !formated
     formatSnpData!.(ref_genotypes, :snpid)
     end
 
@@ -156,6 +156,6 @@ function getStrongLD(ref_genotypes::AbstractVector{SnpData},
         res_chrpos[i] = ref_genotypes[kept_chr[i]].snp_info.snpid[res[i]]
     end
 
-    return kept_chr, Folds.reduce(vcat, res_chrpos, init = [])
+    return Folds.reduce(vcat, res_chrpos, init = [])
 
 end

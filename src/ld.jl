@@ -136,7 +136,7 @@ end
 """
 LD r² composite matrix of n SNPs from index in SnpArray
 """
-function mat_r²(arr::SnpArray, idx::AbstractVector{Int})::Matrix{Float64}
+function getLDmat(arr::SnpArray, idx::AbstractVector{Int})::Matrix{Float64}
     M_corr = Matrix{Float64}(I, length(idx), length(idx))
     
     d = Dict(zip(idx, 1:lastindex(idx)))
@@ -168,11 +168,11 @@ function getLDmat(ref_genotypes::SnpData,
         if j > length(ref_genotypes.snp_info.chr_pos) || ref_genotypes.snp_info.chr_pos[j] != chr_pos_sing
             j = -1
         end
-        snps_indx[i] = j
+        snps_indx[i] = (j < 0) ? j : ref_genotypes.snp_info.idx[j]
     end
     kept_indx = snps_indx[snps_indx .> 0]
 
-    return mat_r²(ref_genotypes.snparray, kept_indx), snps_indx .> 0
+    return getLDmat(ref_genotypes.snparray, kept_indx), snps_indx .> 0
 end
 
 
@@ -182,7 +182,7 @@ function getLDmat(ref_genotypes::SnpData,
     )::Tuple{Matrix{Float64}, Vector{Bool}}
     
     if !formated
-        formatSnpData!(ref_genotypes, sort = :snpid)
+        formatSnpData!(ref_genotypes, :snpid)
     end
 
     snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
@@ -191,11 +191,11 @@ function getLDmat(ref_genotypes::SnpData,
         if j > lastindex(ref_genotypes.snp_info.snpid) || ref_genotypes.snp_info.snpid[j] != chr_pos_sing
             j = -1
         end
-        snps_indx[i] = j
+        snps_indx[i] = (j < 0) ? j : ref_genotypes.snp_info.idx[j]
     end
     kept_indx = snps_indx[snps_indx .> 0]
 
-    return mat_r²(ref_genotypes.snparray, kept_indx), snps_indx .> 0
+    return getLDmat(ref_genotypes.snparray, kept_indx), snps_indx .> 0
 end
 
 
@@ -204,14 +204,18 @@ format Genotype information contained in SnpData for optimised snp search based 
 Adds a column of tuple (chr::Int8, pos::Int) in snp_info and sorts snp_info accordingly.
     returns nothing
 """
-function formatSnpData!(Genotypes::SnpData, sort::Symbol = :chr_pos)
+function formatSnpData!(Genotypes::SnpData, sort_by::Symbol = :chr_pos)
     if !hasproperty(Genotypes.snp_info, :idx)
         Genotypes.snp_info.idx = collect(1:size(Genotypes.snp_info, 1))
     end
-    Genotypes.snp_info.chr_pos = collect(
-            zip(parse.(Int8, Genotypes.snp_info.chromosome), 
-                Genotypes.snp_info.position)
-        )
-    sort!(Genotypes.snp_info, sort)
+    if !hasproperty(Genotypes.snp_info, :chr_pos)
+        Genotypes.snp_info.chr_pos = collect(
+                zip(parse.(Int8, Genotypes.snp_info.chromosome), 
+                    Genotypes.snp_info.position)
+            )
+    end
+    if !issorted(getproperty(Genotypes.snp_info, sort_by))
+        sort!(Genotypes.snp_info, sort_by)
+    end
 end
 
