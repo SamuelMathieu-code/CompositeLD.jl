@@ -20,6 +20,9 @@ CompositeLD is a package using [SnpArrays](https://github.com/OpenMendel/SnpArra
 ## Example
 
 ```julia
+using SnpArrays
+using CompositeLD
+
 data = SnpData(SnpArrays.datadir(datapath))
 
 ld = ld_r²("rs1234", "rs654321", data)
