@@ -23,49 +23,137 @@ end
 """
 LD r² composite of pair of SNPs given two vectors of genotypes
 """
-function ld_r²(snp1::Vector{UInt8}, snp2::Vector{UInt8})::Float64
-    # drop missing values
-    idx = (snp1 .!= @MISSING) .& (snp2 .!= @MISSING)
-    s1, s2 = snp1[idx], snp2[idx]
-    
-    # number of not missing samples
-    n = length(idx)
+@inline function ld_r²_(s1, s2)::Float64
+    n = 0
     
     # calculate needed frequencies
     naa = naA = nAA = nbb = nbB = nBB =
 		nAABB = naabb = naaBB = nAAbb = 0
 
-    for (g1, g2) in zip(s1, s2)
+    @inbounds @simd for i in eachindex(s1, s2)
+        g1, g2 = s1[i], s2[i]
         if  g1 == @HOMO_M
-            nAA +=1
             if g2 == @HOMO_M # AABB
                 nBB +=1
                 nAABB +=1
+                n += 1
+                nAA +=1
             elseif g2 == @HOMO_m # AAbb
                 nbb +=1
                 nAAbb +=1
-            else    #HETER -> AAbB
+                n += 1
+                nAA +=1
+            elseif g2 == @HETER    #HETER -> AAbB
                 nbB +=1
+                n += 1
+                nAA +=1
             end
         elseif g1 == @HOMO_m
-            naa +=1
             if g2 == @HOMO_M # aaBB
                 nBB +=1
                 naaBB +=1
+                n += 1
+                naa +=1
             elseif g2 == @HOMO_m  # aabb
                 nbb +=1
                 naabb +=1
-            else    # HETER -> aabB
+                n += 1
+                naa +=1
+            elseif g2 == @HETER    # HETER -> aabB
                 nbB +=1
+                n += 1
+                naa +=1
             end
-        else # @HETER
-            naA +=1
+        elseif g1 == @HETER # @HETER
             if g2 == @HOMO_M # aABB
                 nBB +=1
+                n += 1
+                naA +=1
             elseif g2 == @HOMO_m # aAbb
                 nbb+=1
-            else    # HETER -> aAbB
+                n += 1
+                naA +=1
+            elseif g2 == @HETER    # HETER -> aAbB
                 nbB +=1
+                n += 1
+                naA +=1
+            end
+        end
+    end
+
+    # final calculations
+    Δ = (nAABB + naabb - naaBB - nAAbb) / (2*n) - 
+        (naa-nAA)*(nbb-nBB) / (2*n*n)
+    
+    pa = (2*naa + naA) / (2*n)
+    pb = (2*nbb + nbB) / (2*n)
+    pA = 1 - pa
+    pB = 1 - pb
+    pAA = nAA / n
+    pBB = nBB / n
+    DA = pAA - pA*pA
+    DB = pBB - pB*pB
+    t = (pA*pa + DA) * (pB*pb + DB)
+
+    return Δ^2 / t
+
+end
+
+
+function ld_r²(s1, s2)::Float64
+    n = 0
+    
+    # calculate needed frequencies
+    naa = naA = nAA = nbb = nbB = nBB =
+		nAABB = naabb = naaBB = nAAbb = 0
+
+    for i in eachindex(s1, s2)
+        g1, g2 = s1[i], s2[i]
+        if  g1 == @HOMO_M
+            if g2 == @HOMO_M # AABB
+                nBB +=1
+                nAABB +=1
+                n += 1
+                nAA +=1
+            elseif g2 == @HOMO_m # AAbb
+                nbb +=1
+                nAAbb +=1
+                n += 1
+                nAA +=1
+            elseif g2 == @HETER    #HETER -> AAbB
+                nbB +=1
+                n += 1
+                nAA +=1
+            end
+        elseif g1 == @HOMO_m
+            if g2 == @HOMO_M # aaBB
+                nBB +=1
+                naaBB +=1
+                n += 1
+                naa +=1
+            elseif g2 == @HOMO_m  # aabb
+                nbb +=1
+                naabb +=1
+                n += 1
+                naa +=1
+            elseif g2 == @HETER    # HETER -> aabB
+                nbB +=1
+                n += 1
+                naa +=1
+            end
+        elseif g1 == @HETER # @HETER
+            if g2 == @HOMO_M # aABB
+                nBB +=1
+                n += 1
+                naA +=1
+            elseif g2 == @HOMO_m # aAbb
+                nbb+=1
+                n += 1
+                naA +=1
+            elseif g2 == @HETER    # HETER -> aAbB
+                nbB +=1
+                n += 1
+                naA +=1
             end
         end
     end
@@ -93,7 +181,7 @@ end
 LD r² composite of pair of SNPs given genotype matrix and indices of snps in matrix
 """
 function ld_r²(snp1::Integer, snp2::Integer, ref::AbstractSnpArray)::Float64
-    return ld_r²(ref[:, snp1], ref[:, snp2])    
+    return @views ld_r²_(ref[:, snp1], ref[:, snp2])
 end
 
 
@@ -115,7 +203,7 @@ function ld_r²(snp1::AbstractString, snp2::AbstractString, ref::SnpData; format
 
         return NaN
     else
-        return ld_r²(ref.snp_info.idx[id1], ref.snp_info.idx[id2], ref.snparray)
+        return @views ld_r²_(ref.snparray[:, ref.snp_info.idx[id1]], ref.snparray[:, ref.snp_info.idx[id2]])
     end
 end
 
@@ -138,22 +226,19 @@ function ld_r²(snp1::Tuple{Integer, Integer}, snp2::Tuple{Integer, Integer}, re
         
         return NaN
     else
-        return ld_r²(ref.snp_info.idx[id1], ref.snp_info.idx[id2], ref.snparray)
+        return @views ld_r²_(ref.snparray[:, ref.snp_info.idx[id1]], ref.snparray[:, ref.snp_info.idx[id2]])
     end
 end
 
 
 """
-LD r² composite matrix of n SNPs from index in SnpArray
+LD r² composite matrix of n SNPs from index in given SnpArray
 """
-function getLDmat(arr::SnpArray, idx::AbstractVector{Int})::Matrix{Float64}
+function getLDmat(arr::SnpArray, idx::AbstractVector{<:Integer})::Matrix{Float64}
     M_corr = Matrix{Float64}(I, length(idx), length(idx))
     
-    d = Dict(zip(idx, 1:lastindex(idx)))
-    @threads for (i, j) in collect(subsets(idx, 2))
-        snp1 = arr[:,i]
-        snp2 = arr[:,j]
-        M_corr[d[i], d[j]] = M_corr[d[j], d[i]] = ld_r²(snp1, snp2) #function implemented following paper pmid :18757931, for r² type r\^2
+    @threads for (i, j) in collect(subsets(eachindex(idx), 2))
+        M_corr[i, j] = M_corr[j, i] = @views ld_r²_(arr[:, idx[i]], arr[:, idx[j]]) #function implemented following paper pmid :18757931, for r² type r\^2
     end
     return M_corr
 end
