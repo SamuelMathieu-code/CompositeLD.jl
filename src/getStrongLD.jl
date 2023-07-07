@@ -1,7 +1,9 @@
 using SnpArrays
 using Folds
 
-
+"""
+Function : Get strongly correlated variants from list.
+"""
 function getStrongLD(ref_genotypes::SnpData, 
                      snps::AbstractVector{<:Tuple{Integer, Integer}}; 
                      r2_tresh::Float64 = 0.8,

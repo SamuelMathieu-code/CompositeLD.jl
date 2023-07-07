@@ -21,7 +21,7 @@ end
 ############ LD calculations ############
 
 """
-LD r² composite of pair of SNPs
+LD r² composite of pair of SNPs given two vectors of genotypes
 """
 function ld_r²(snp1::Vector{UInt8}, snp2::Vector{UInt8})::Float64
     # drop missing values
@@ -89,11 +89,17 @@ function ld_r²(snp1::Vector{UInt8}, snp2::Vector{UInt8})::Float64
 end
 
 
+"""
+LD r² composite of pair of SNPs given genotype matrix and indices of snps in matrix
+"""
 function ld_r²(snp1::Integer, snp2::Integer, ref::AbstractSnpArray)::Float64
     return ld_r²(ref[:, snp1], ref[:, snp2])    
 end
 
 
+"""
+LD r² composite of pair of SNPs given snp ids and refernce data
+"""
 function ld_r²(snp1::AbstractString, snp2::AbstractString, ref::SnpData; formated = false)::Float64
     if !formated
         formatSnpData!(ref, :snpid)
@@ -113,6 +119,10 @@ function ld_r²(snp1::AbstractString, snp2::AbstractString, ref::SnpData; format
     end
 end
 
+
+"""
+LD r² composite of pair of SNPs given (chromosome, position) and reference data
+"""
 function ld_r²(snp1::Tuple{Integer, Integer}, snp2::Tuple{Integer, Integer}, ref::SnpData, formated = false)
     if !formated
         formatSnpData!(ref)
@@ -175,7 +185,10 @@ function getLDmat(ref_genotypes::SnpData,
     return getLDmat(ref_genotypes.snparray, kept_indx), snps_indx .> 0
 end
 
-
+"""
+Get correlation Matrix for specifies snps (snpid) 
+    given reference genotype SnpData.
+"""
 function getLDmat(ref_genotypes::SnpData,
     snps::AbstractVector{<:AbstractString},
     formated::Bool = false
@@ -200,8 +213,8 @@ end
 
 
 """
-format Genotype information contained in SnpData for optimised snp search based on chromosome position.
-Adds a column of tuple (chr::Int8, pos::Int) in snp_info and sorts snp_info accordingly.
+format Genotype information contained in SnpData for snp sorted search based on chromosome and position (snpid).
+Adds a column chr_pos (chr::Int8, pos::Int) in snp_info and sorts snp_info by chr_pos (snpid). Adds a column containing original indices.
     returns nothing
 """
 function formatSnpData!(Genotypes::SnpData, sort_by::Symbol = :chr_pos)
