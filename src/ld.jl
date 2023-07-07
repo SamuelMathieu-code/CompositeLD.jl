@@ -23,7 +23,7 @@ end
 """
 LD r² composite of pair of SNPs given two vectors of genotypes
 """
-@inline function ld_r²_(s1, s2)::Float64
+@inline function _ld_r²_(s1, s2)::Float64
     n = 0
     
     # calculate needed frequencies
@@ -82,21 +82,24 @@ LD r² composite of pair of SNPs given two vectors of genotypes
     end
 
     # final calculations
-    Δ = (nAABB + naabb - naaBB - nAAbb) / (2*n) - 
-        (naa-nAA)*(nbb-nBB) / (2*n*n)
-    
-    pa = (2*naa + naA) / (2*n)
-    pb = (2*nbb + nbB) / (2*n)
-    pA = 1 - pa
-    pB = 1 - pb
-    pAA = nAA / n
-    pBB = nBB / n
-    DA = pAA - pA*pA
-    DB = pBB - pB*pB
-    t = (pA*pa + DA) * (pB*pb + DB)
+    @fastmath begin
+        Δ = (nAABB + naabb - naaBB - nAAbb) / (2*n) - 
+            (naa-nAA)*(nbb-nBB) / (2*n*n)
+        
+        pa = (2*naa + naA) / (2*n)
+        pb = (2*nbb + nbB) / (2*n)
+        pA = 1 - pa
+        pB = 1 - pb
+        pAA = nAA / n
+        pBB = nBB / n
+        DA = pAA - pA*pA
+        DB = pBB - pB*pB
+        t = (pA*pa + DA) * (pB*pb + DB)
 
-    return Δ^2 / t
+        r = Δ^2 / t
+    end
 
+    return r
 end
 
 
@@ -173,7 +176,6 @@ function ld_r²(s1, s2)::Float64
     t = (pA*pa + DA) * (pB*pb + DB)
 
     return Δ^2 / t
-
 end
 
 
@@ -181,7 +183,7 @@ end
 LD r² composite of pair of SNPs given genotype matrix and indices of snps in matrix
 """
 function ld_r²(snp1::Integer, snp2::Integer, ref::AbstractSnpArray)::Float64
-    return @views ld_r²_(ref[:, snp1], ref[:, snp2])
+    return @views _ld_r²_(ref[:, snp1], ref[:, snp2])
 end
 
 
@@ -203,7 +205,7 @@ function ld_r²(snp1::AbstractString, snp2::AbstractString, ref::SnpData; format
 
         return NaN
     else
-        return @views ld_r²_(ref.snparray[:, ref.snp_info.idx[id1]], ref.snparray[:, ref.snp_info.idx[id2]])
+        return @views _ld_r²_(ref.snparray[:, ref.snp_info.idx[id1]], ref.snparray[:, ref.snp_info.idx[id2]])
     end
 end
 
@@ -226,7 +228,7 @@ function ld_r²(snp1::Tuple{Integer, Integer}, snp2::Tuple{Integer, Integer}, re
         
         return NaN
     else
-        return @views ld_r²_(ref.snparray[:, ref.snp_info.idx[id1]], ref.snparray[:, ref.snp_info.idx[id2]])
+        return @views _ld_r²_(ref.snparray[:, ref.snp_info.idx[id1]], ref.snparray[:, ref.snp_info.idx[id2]])
     end
 end
 
@@ -238,7 +240,7 @@ function getLDmat(arr::SnpArray, idx::AbstractVector{<:Integer})::Matrix{Float64
     M_corr = Matrix{Float64}(I, length(idx), length(idx))
     
     @threads for (i, j) in collect(subsets(eachindex(idx), 2))
-        M_corr[i, j] = M_corr[j, i] = @views ld_r²_(arr[:, idx[i]], arr[:, idx[j]]) #function implemented following paper pmid :18757931, for r² type r\^2
+        M_corr[i, j] = M_corr[j, i] = @views _ld_r²_(arr[:, idx[i]], arr[:, idx[j]]) #function implemented following paper pmid :18757931, for r² type r\^2
     end
     return M_corr
 end
