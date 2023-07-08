@@ -259,16 +259,6 @@ function getLDmat(ref_genotypes::SnpData,
         formatSnpData!(ref_genotypes)
     end
 
-    # snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
-    # @threads for (i, chr_pos_sing) in collect(enumerate(snps))
-    #     local j = searchsortedfirst(ref_genotypes.snp_info.chr_pos, chr_pos_sing)
-    #     if j > length(ref_genotypes.snp_info.chr_pos) || ref_genotypes.snp_info.chr_pos[j] != chr_pos_sing
-    #         j = -1
-    #     end
-    #     snps_indx[i] = (j < 0) ? j : ref_genotypes.snp_info.idx[j]
-    # end
-    # kept_indx = snps_indx[snps_indx .> 0]
-    # search for indices of given snps
     snps_indx = Vector{Int}(undef, size(snps, 1))
     kept_indx = Vector{Bool}(undef, size(snps, 1))
     @threads for (i, chr_pos_sing) in collect(enumerate(snps))
@@ -298,16 +288,6 @@ function getLDmat(ref_genotypes::SnpData,
         formatSnpData!(ref_genotypes, :snpid)
     end
 
-    # snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
-    # @threads for (i, chr_pos_sing) in collect(enumerate(snps))
-    #     local j = searchsortedfirst(ref_genotypes.snp_info.snpid, chr_pos_sing)
-    #     if j > lastindex(ref_genotypes.snp_info.snpid) || ref_genotypes.snp_info.snpid[j] != chr_pos_sing
-    #         j = -1
-    #     end
-    #     snps_indx[i] = (j < 0) ? j : ref_genotypes.snp_info.idx[j]
-    # end
-    # kept_indx = snps_indx[snps_indx .> 0]
-    # search for indices of given snps
     snps_indx = Vector{Int}(undef, size(snps, 1))
     kept_indx = Vector{Bool}(undef, size(snps, 1))
     @threads for (i, chr_pos_sing) in collect(enumerate(snps))
