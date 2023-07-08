@@ -26,3 +26,18 @@ chosen_sample_ids = ["1:87917746",
     @test expected_2e_3 == clump(data, chosen_sample_ids, r2_tresh = 0.002) 
     
 end
+
+@testset "tclump" begin
+    expected_1e_1 = [1, 1, 1, 1, 0]
+    expected_2e_3 = [1, 0, 1, 1, 0]
+    expected_1e_3 = [1, 0, 0, 0, 0]
+    data = SnpData(SnpArrays.datadir(data_dir_plink_files))
+
+    @test expected_1e_1 == tclump(data, chosen_sample)
+    @test expected_1e_3 == tclump(data, chosen_sample, r2_tresh = 0.001)
+    @test expected_2e_3 == tclump(data, chosen_sample, r2_tresh = 0.002)
+    @test expected_1e_1 == tclump(data, chosen_sample_ids)
+    @test expected_1e_3 == tclump(data, chosen_sample_ids, r2_tresh = 0.001)
+    @test expected_2e_3 == tclump(data, chosen_sample_ids, r2_tresh = 0.002) 
+    
+end

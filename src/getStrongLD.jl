@@ -20,9 +20,7 @@ function getStrongLD(ref_genotypes::SnpData,
         @inbounds begin 
             kept_input[i] = firstindex(ref_genotypes.snp_info.chr_pos) ≤ j ≤ lastindex(ref_genotypes.snp_info.chr_pos) && 
                           ref_genotypes.snp_info.chr_pos[j] == chr_pos_sing
-            if kept_input[i]
-                snps_indx[i] = j
-            end
+            snps_indx[i] = j
         end
     end
     snps_indx = snps_indx[kept_input]
@@ -81,9 +79,7 @@ function getStrongLD(ref_genotypes::SnpData,
         @inbounds begin 
             kept_input[i] = firstindex(ref_genotypes.snp_info.snpid) ≤ j ≤ lastindex(ref_genotypes.snp_info.snpid) && 
                           ref_genotypes.snp_info.snpid[j] == chr_pos_sing
-            if kept_input[i]
-                snps_indx[i] = j
-            end
+            snps_indx[i] = j
         end
     end
     snps_indx = snps_indx[kept_input]
