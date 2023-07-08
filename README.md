@@ -34,3 +34,13 @@ strong = getStrongLD(data, ["rs1234", "rs5678"])
 kept_v_b = clump(data, [(1, 459876), (1, 58735), (2, 97654)])
 
 ```
+
+## TO DO
+
+- [ ] Better documentation
+- [ ] Implementation of various LDLink/PLINK functionalities
+    - [ ] LD matrix all snps in window
+    - [ ] Visualise LD in a locus
+    - [ ] PGEN format support + happlotypes
+    - [ ] Covariance, LD with happlotypes
+
