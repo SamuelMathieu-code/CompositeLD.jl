@@ -13,15 +13,18 @@ function getStrongLD(ref_genotypes::SnpData,
         formatSnpData!(ref_genotypes)
     end
 
-    snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
+    snps_indx = Vector{Int}(undef, size(snps, 1))
+    kept_input = Vector{Bool}(undef, size(snps, 1))
     @threads for (i, chr_pos_sing) in collect(enumerate(snps))
-        local j = searchsortedfirst(ref_genotypes.snp_info.chr_pos, chr_pos_sing)
-        if j > lastindex(ref_genotypes.snp_info.chr_pos) || ref_genotypes.snp_info.chr_pos[j] != chr_pos_sing
-            j = -1
+        j = searchsortedfirst(ref_genotypes.snp_info.chr_pos, chr_pos_sing)
+        @inbounds begin 
+            kept_input[i] = firstindex(ref_genotypes.snp_info.chr_pos) ≤ j ≤ lastindex(ref_genotypes.snp_info.chr_pos) && 
+                          ref_genotypes.snp_info.chr_pos[j] == chr_pos_sing
+            if kept_input[i]
+                snps_indx[i] = j
+            end
         end
-        snps_indx[i] = j
     end
-    kept_input = snps_indx .> 0
     snps_indx = snps_indx[kept_input]
     kept_idx = ref_genotypes.snp_info.idx[snps_indx]
     kept_chr = ref_genotypes.snp_info.chromosome[snps_indx]
@@ -71,15 +74,18 @@ function getStrongLD(ref_genotypes::SnpData,
         formatSnpData!(ref_genotypes, :snpid)
     end
 
-    snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
+    snps_indx = Vector{Int}(undef, size(snps, 1))
+    kept_input = Vector{Bool}(undef, size(snps, 1))
     @threads for (i, chr_pos_sing) in collect(enumerate(snps))
-        local j = searchsortedfirst(ref_genotypes.snp_info.snpid, chr_pos_sing)
-        if j > lastindex(ref_genotypes.snp_info.snpid) || ref_genotypes.snp_info.snpid[j] != chr_pos_sing
-            j = -1
+        j = searchsortedfirst(ref_genotypes.snp_info.snpid, chr_pos_sing)
+        @inbounds begin 
+            kept_input[i] = firstindex(ref_genotypes.snp_info.snpid) ≤ j ≤ lastindex(ref_genotypes.snp_info.snpid) && 
+                          ref_genotypes.snp_info.snpid[j] == chr_pos_sing
+            if kept_input[i]
+                snps_indx[i] = j
+            end
         end
-        snps_indx[i] = j
     end
-    kept_input = snps_indx .> 0
     snps_indx = snps_indx[kept_input]
     kept_idx = ref_genotypes.snp_info.idx[snps_indx]
     kept_chr = ref_genotypes.snp_info.chromosome[snps_indx]

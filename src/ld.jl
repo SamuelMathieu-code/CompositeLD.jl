@@ -240,7 +240,7 @@ function getLDmat(arr::SnpArray, idx::AbstractVector{<:Integer})::Matrix{Float64
     M_corr = Matrix{Float64}(I, length(idx), length(idx))
     
     @threads for (i, j) in collect(subsets(eachindex(idx), 2))
-        M_corr[i, j] = M_corr[j, i] = @views _ld_r²_(arr[:, idx[i]], arr[:, idx[j]]) #function implemented following paper pmid :18757931, for r² type r\^2
+        @inbounds M_corr[i, j] = M_corr[j, i] = @views _ld_r²_(arr[:, idx[i]], arr[:, idx[j]]) #function implemented following paper pmid :18757931, for r² type r\^2
     end
     return M_corr
 end
@@ -259,17 +259,30 @@ function getLDmat(ref_genotypes::SnpData,
         formatSnpData!(ref_genotypes)
     end
 
-    snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
+    # snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
+    # @threads for (i, chr_pos_sing) in collect(enumerate(snps))
+    #     local j = searchsortedfirst(ref_genotypes.snp_info.chr_pos, chr_pos_sing)
+    #     if j > length(ref_genotypes.snp_info.chr_pos) || ref_genotypes.snp_info.chr_pos[j] != chr_pos_sing
+    #         j = -1
+    #     end
+    #     snps_indx[i] = (j < 0) ? j : ref_genotypes.snp_info.idx[j]
+    # end
+    # kept_indx = snps_indx[snps_indx .> 0]
+    # search for indices of given snps
+    snps_indx = Vector{Int}(undef, size(snps, 1))
+    kept_indx = Vector{Bool}(undef, size(snps, 1))
     @threads for (i, chr_pos_sing) in collect(enumerate(snps))
-        local j = searchsortedfirst(ref_genotypes.snp_info.chr_pos, chr_pos_sing)
-        if j > length(ref_genotypes.snp_info.chr_pos) || ref_genotypes.snp_info.chr_pos[j] != chr_pos_sing
-            j = -1
+        j = searchsortedfirst(ref_genotypes.snp_info.chr_pos, chr_pos_sing)
+        @inbounds begin 
+            kept_indx[i] = firstindex(ref_genotypes.snp_info.chr_pos) ≤ j ≤ lastindex(ref_genotypes.snp_info.chr_pos) && 
+                          ref_genotypes.snp_info.chr_pos[j] == chr_pos_sing
+            if kept_indx[i]
+                snps_indx[i] = ref_genotypes.snp_info.idx[j]
+            end
         end
-        snps_indx[i] = (j < 0) ? j : ref_genotypes.snp_info.idx[j]
     end
-    kept_indx = snps_indx[snps_indx .> 0]
 
-    return getLDmat(ref_genotypes.snparray, kept_indx), snps_indx .> 0
+    return getLDmat(ref_genotypes.snparray, snps_indx[kept_indx]), kept_indx
 end
 
 """
@@ -285,17 +298,30 @@ function getLDmat(ref_genotypes::SnpData,
         formatSnpData!(ref_genotypes, :snpid)
     end
 
-    snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
+    # snps_indx = Vector{Union{Int}}(undef, size(snps, 1))
+    # @threads for (i, chr_pos_sing) in collect(enumerate(snps))
+    #     local j = searchsortedfirst(ref_genotypes.snp_info.snpid, chr_pos_sing)
+    #     if j > lastindex(ref_genotypes.snp_info.snpid) || ref_genotypes.snp_info.snpid[j] != chr_pos_sing
+    #         j = -1
+    #     end
+    #     snps_indx[i] = (j < 0) ? j : ref_genotypes.snp_info.idx[j]
+    # end
+    # kept_indx = snps_indx[snps_indx .> 0]
+    # search for indices of given snps
+    snps_indx = Vector{Int}(undef, size(snps, 1))
+    kept_indx = Vector{Bool}(undef, size(snps, 1))
     @threads for (i, chr_pos_sing) in collect(enumerate(snps))
-        local j = searchsortedfirst(ref_genotypes.snp_info.snpid, chr_pos_sing)
-        if j > lastindex(ref_genotypes.snp_info.snpid) || ref_genotypes.snp_info.snpid[j] != chr_pos_sing
-            j = -1
+        j = searchsortedfirst(ref_genotypes.snp_info.snpid, chr_pos_sing)
+        @inbounds begin 
+            kept_indx[i] = firstindex(ref_genotypes.snp_info.snpid) ≤ j ≤ lastindex(ref_genotypes.snp_info.snpid) && 
+                          ref_genotypes.snp_info.snpid[j] == chr_pos_sing
+            if kept_indx[i]
+                snps_indx[i] = ref_genotypes.snp_info.idx[j]
+            end
         end
-        snps_indx[i] = (j < 0) ? j : ref_genotypes.snp_info.idx[j]
     end
-    kept_indx = snps_indx[snps_indx .> 0]
 
-    return getLDmat(ref_genotypes.snparray, kept_indx), snps_indx .> 0
+    return getLDmat(ref_genotypes.snparray, snps_indx[kept_indx]), kept_indx
 end
 
 
