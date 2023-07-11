@@ -109,21 +109,21 @@ LD r² composite of pair of SNPs given genotype matrix and indices of snps in ma
 ```julia
 ref = SnpData(datadir("some/data"))
 
-ld_r²([0x00, 0x01, 0x03], [0x00, 0x00, 0x03])
+ld_r2([0x00, 0x01, 0x03], [0x00, 0x00, 0x03])
 
-ld_r²(1, 2, ref.snparray)
+ld_r2(1, 2, ref.snparray)
 
 formatSnpData!(ref, :snpid)
 
-ld_r²("rs123", "rs456", ref, formated = true)
+ld_r2("rs123", "rs456", ref, formated = true)
 
-ld_r²((1, 234), (1, 567), ref)
+ld_r2((1, 234), (1, 567), ref)
 ```
 If formatSnpData has already been called on good snp info type (`:chr_pos` or `:snpid`), `formated = true` option does not verify or modify formating.
 See [`formatSnpData!`](@ref). \\
 returns a Float64
 """
-function ld_r²(s1, s2)::Float64
+function ld_r2(s1, s2)::Float64
     n = 0
     
     # calculate needed frequencies
@@ -199,12 +199,12 @@ function ld_r²(s1, s2)::Float64
 end
 
 
-function ld_r²(snp1::Integer, snp2::Integer, ref::AbstractSnpArray)::Float64
+@inline function ld_r2(snp1::Integer, snp2::Integer, ref::AbstractSnpArray)::Float64
     return @views _ld_r²_(ref[:, snp1], ref[:, snp2])
 end
 
 
-function ld_r²(snp1::AbstractString, snp2::AbstractString, ref::SnpData; formated = false)::Float64
+function ld_r2(snp1::AbstractString, snp2::AbstractString, ref::SnpData; formated = false)::Float64
     if !formated
         formatSnpData!(ref, :snpid)
     end
@@ -224,7 +224,7 @@ function ld_r²(snp1::AbstractString, snp2::AbstractString, ref::SnpData; format
 end
 
 
-function ld_r²(snp1::Tuple{Integer, Integer}, snp2::Tuple{Integer, Integer}, ref::SnpData, formated = false)
+function ld_r2(snp1::Tuple{Integer, Integer}, snp2::Tuple{Integer, Integer}, ref::SnpData, formated = false)
     if !formated
         formatSnpData!(ref)
     end

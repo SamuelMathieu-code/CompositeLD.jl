@@ -5,11 +5,16 @@ using Base.Threads
 """
 Get strongly correlated variants from list.
 
+arguments : 
+
+`ref&#95;genotypes::SnpData` : reference genotypes (formated by [`formatSnpData!`](@ref) or not)
+`snps::Union{AbstractVector{<:Tuple{integer, Integer}}, AbstractVector{<:AbstractString}}` : snps for which to search proxis
+
 options : 
 
-`formated` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
-`window` : maximal distance from snip for ld calculations\\
-`r2_tresh` : minimal r² for 2 snps to be considered strongly correlated.
+`formated::Bool` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
+`window::Integer` : maximal distance from snip for ld calculations\\
+`r2&#95;tresh::AbstractFloat` : minimal r² for 2 snps to be considered strongly correlated.
 
 ## Examples
 
@@ -57,7 +62,7 @@ function getStrongLD(ref_genotypes::SnpData,
         idx_v_b = t1 .& t2
         indexes = ref_genotypes.snp_info.idx[idx_v_b]
         kept = findall(idx_v_b)
-        corr = [ld_r²(s, kept_idx[i], ref_genotypes.snparray) for s in indexes]
+        corr = [ld_r2(s, kept_idx[i], ref_genotypes.snparray) for s in indexes]
         res[i] = kept[corr .> r2_tresh]
     end
     res2 = Folds.reduce(vcat, res, init = [])
@@ -118,7 +123,7 @@ function getStrongLD(ref_genotypes::SnpData,
         idx_v_b = t1 .& t2
         indexes = ref_genotypes.snp_info.idx[idx_v_b]
         kept = findall(idx_v_b)
-        corr = [ld_r²(s, kept_idx[i], ref_genotypes.snparray) for s in indexes]
+        corr = [ld_r2(s, kept_idx[i], ref_genotypes.snparray) for s in indexes]
         res[i] = kept[corr .> r2_tresh]
     end
     res2 = Folds.reduce(vcat, res, init = [])

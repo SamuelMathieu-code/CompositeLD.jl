@@ -28,16 +28,16 @@ chosen_sample_ids = ["1:87917746",
     @test hasproperty(data.snp_info, :chr_pos)
 end
 
-@testset "ld_r²" begin
+@testset "ld_r2" begin
     resp = 0.00124
     tol = 1e-5
     data = SnpData(SnpArrays.datadir(data_dir_plink_files))
 
-    @test isapprox(ld_r²(data.snparray[:, 1], data.snparray[:, 4]), resp, atol = tol)
-    @test isapprox(ld_r²(1, 4, data.snparray), resp, atol = tol)
+    @test isapprox(ld_r2(data.snparray[:, 1], data.snparray[:, 4]), resp, atol = tol)
+    @test isapprox(ld_r2(1, 4, data.snparray), resp, atol = tol)
 
-    @test isapprox(ld_r²(chosen_sample[1], chosen_sample[4], data), resp, atol = tol)
-    @test isapprox(ld_r²(chosen_sample_ids[1], chosen_sample_ids[4], data), resp, atol = tol)
+    @test isapprox(ld_r2(chosen_sample[1], chosen_sample[4], data), resp, atol = tol)
+    @test isapprox(ld_r2(chosen_sample_ids[1], chosen_sample_ids[4], data), resp, atol = tol)
 
 end
 

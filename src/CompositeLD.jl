@@ -1,7 +1,7 @@
 module CompositeLD
 
 
-export ld_r², getLDmat, formatSnpData!
+export ld_r2, getLDmat, formatSnpData!
 export clump, tclump
 export getStrongLD
 

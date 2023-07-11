@@ -5,22 +5,36 @@ using Base.Threads
 Implementation of the clumping algorithm prioritising first snps in given Vector and formated Genotypes SnpData (see formatSnpData!)
     returns a vector of booean indication if each given snp is kept
 
-options : 
+**arguments :**
 
-`formated` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
-`r2_tresh` : minimal r² for 2 snps to be considered strongly correlated.
+`ref&#95;genotypes::SnpData` : reference genotypes (formated by [`formatSnpData!`](@ref) or not)
+`snps::Union{AbstractVector{<:Tuple{integer, Integer}}, AbstractVector{<:AbstractString}}` : snps to clump
+
+
+**options :** 
+
+`formated::Bool` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
+`r2&#95;tresh::AbstractFloat` : minimal r² for 2 snps to be considered strongly correlated.
 
 
 ## Examples :
 
-```julia
-ref = SnpData(datadir("some/data"))
+```julia-repl
+julia> ref = SnpData(datadir("some/data"));
 
-kept_v_b::Vector{Bool} = clump([(1, 123), (1, 456), (1, 789)], ref)
+julia> kept_v_b::Vector{Bool} = clump([(1, 123), (1, 456), (1, 789)], ref)
+3-element Vector{Int64}:
+ 1
+ 0
+ 1
 
-formatSnpData!(ref, :snpid)
+julia> formatSnpData!(ref, :snpid);
 
-kept_v_b::Vector{Bool} = clump(["rs123", "rs456", "rs789"], ref, formated = true)
+julia> kept_v_b::Vector{Bool} = clump(["rs123", "rs456", "rs789"], ref, formated = true)
+3-element Vector{Int64}:
+ 1
+ 0
+ 1
 ```
 
 If formatSnpData has already been called on good snp info type (`:chr_pos` or `:snpid`), `formated = true` option does not verify or modify formating.
@@ -113,11 +127,17 @@ end
 threaded implementation of the clumping algorithm prioritising first snps in given Vector and formated Genotypes SnpData (see formatSnpData!)
     returns a vector of booean indication if each given snp is kept
 
-options : 
+**arguments :**
 
-`formated` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
-`r2_tresh` : minimal r² for 2 snps to be considered strongly correlated.
+`ref&#95;genotypes::SnpData` : reference genotypes (formated by [`formatSnpData!`](@ref) or not)
+`snps::Union{AbstractVector{<:Tuple{integer, Integer}}, AbstractVector{<:AbstractString}}` : snps to clump
 
+
+**options :** 
+
+`formated::Bool` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
+`r2&#95;tresh::AbstractFloat` : minimal r² for 2 snps to be considered strongly correlated.
+        
 ## Examples :
 
 ```julia

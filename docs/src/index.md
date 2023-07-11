@@ -1,13 +1,5 @@
-<div align="center">
+# CompositeLD.jl Documentation
 
-# CompositeLD
-
-[![Build Status](https://github.com/SamuelMathieu-code/CompositeLD.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/SamuelMathieu-code/CompositeLD.jl/actions/workflows/CI.yml?query=branch%3Amain)
-
-
-</div>
-
-**This repository is under developpement, any suggestion is welcome!** :smiley:
 
 ## Overview 
 
@@ -34,12 +26,28 @@ strong = getStrongLD(data, ["rs1234", "rs5678"])
 kept_v_b = clump(data, [(1, 459876), (1, 58735), (2, 97654)])
 ```
 
-## TO DO
+## Contents
 
-- [ ] Better documentation
-- [ ] Implementation of various LDLink/PLINK functionalities
-    - [ ] LD matrix all snps in window
-    - [ ] Visualise LD in a locus
-    - [ ] PGEN format support + happlotypes
-    - [ ] Covariance, LD with happlotypes
+```@contents
+```
 
+## Functions
+
+```@docs
+formatSnpData!
+
+ld_r2
+
+getLDmat
+
+getStrongLD
+
+clump
+
+tclump
+```
+
+## Index
+
+```@index
+```
