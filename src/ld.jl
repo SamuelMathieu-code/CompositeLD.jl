@@ -20,9 +20,7 @@ end
 
 ############ LD calculations ############
 
-"""
-LD r² composite of pair of SNPs given two vectors of genotypes
-"""
+# LD r² composite of pair of SNPs given two vectors of genotypes
 @inline function _ld_r²_(s1, s2)::Float64
     n = 0
     
@@ -103,6 +101,28 @@ LD r² composite of pair of SNPs given two vectors of genotypes
 end
 
 
+"""
+LD r² composite of pair of SNPs given genotype matrix and indices of snps in matrix
+
+## Examples :
+
+```julia
+ref = SnpData(datadir("some/data"))
+
+ld_r²([0x00, 0x01, 0x03], [0x00, 0x00, 0x03])
+
+ld_r²(1, 2, ref.snparray)
+
+formatSnpData!(ref, :snpid)
+
+ld_r²("rs123", "rs456", ref, formated = true)
+
+ld_r²((1, 234), (1, 567), ref)
+```
+If formatSnpData has already been called on good snp info type (`:chr_pos` or `:snpid`), `formated = true` option does not verify or modify formating.
+See [`formatSnpData!`](@ref). \\
+returns a Float64
+"""
 function ld_r²(s1, s2)::Float64
     n = 0
     
@@ -179,17 +199,11 @@ function ld_r²(s1, s2)::Float64
 end
 
 
-"""
-LD r² composite of pair of SNPs given genotype matrix and indices of snps in matrix
-"""
 function ld_r²(snp1::Integer, snp2::Integer, ref::AbstractSnpArray)::Float64
     return @views _ld_r²_(ref[:, snp1], ref[:, snp2])
 end
 
 
-"""
-LD r² composite of pair of SNPs given snp ids and refernce data
-"""
 function ld_r²(snp1::AbstractString, snp2::AbstractString, ref::SnpData; formated = false)::Float64
     if !formated
         formatSnpData!(ref, :snpid)
@@ -210,9 +224,6 @@ function ld_r²(snp1::AbstractString, snp2::AbstractString, ref::SnpData; format
 end
 
 
-"""
-LD r² composite of pair of SNPs given (chromosome, position) and reference data
-"""
 function ld_r²(snp1::Tuple{Integer, Integer}, snp2::Tuple{Integer, Integer}, ref::SnpData, formated = false)
     if !formated
         formatSnpData!(ref)
@@ -235,6 +246,23 @@ end
 
 """
 LD r² composite matrix of n SNPs from index in given SnpArray
+
+## Examples :
+
+```julia
+ref = SnpData(datadir("some/data"))
+
+M::Matrix{Float64} = getLDmat([2, 4, 8, 16], ref.snparray)
+
+getLDmat([(1, 123), (1, 456), (1, 789)], ref)
+
+formatSnpData!(ref, :snpid)
+
+M::Matrix{Float64} = getLDmat(["rs123", "rs456", "rs789"], ref, formated = true)
+```
+
+If formatSnpData has already been called on good snp info type (`:chr_pos` or `:snpid`), `formated = true` option does not verify or modify formating.
+See [`formatSnpData!`](@ref). 
 """
 function getLDmat(arr::SnpArray, idx::AbstractVector{<:Integer})::Matrix{Float64}
     M_corr = Matrix{Float64}(I, length(idx), length(idx))
@@ -275,10 +303,7 @@ function getLDmat(ref_genotypes::SnpData,
     return getLDmat(ref_genotypes.snparray, snps_indx[kept_indx]), kept_indx
 end
 
-"""
-Get correlation Matrix for specifies snps (snpid) 
-    given reference genotype SnpData.
-"""
+
 function getLDmat(ref_genotypes::SnpData,
     snps::AbstractVector{<:AbstractString},
     formated::Bool = false
@@ -309,6 +334,19 @@ end
 format Genotype information contained in SnpData for snp sorted search based on chromosome and position (snpid).
 Adds a column chr_pos (chr::Int8, pos::Int) in snp_info and sorts snp_info by chr_pos (snpid). Adds a column containing original indices.
     returns nothing
+
+## Examples
+
+```julia
+ref = SnpData(datadir("some/data"))
+
+formatSnpData!(ref, :chr_pos)
+
+formatSnpData!(ref, :snpid)
+```
+
+Note this function does not take into account the user might want to write SnpData in bed, bim, fam format. 
+    The changes done by this function can and will cause problems if writing plink files after calling `formatSnpData!`.
 """
 function formatSnpData!(Genotypes::SnpData, sort_by::Symbol = :chr_pos)
     if !hasproperty(Genotypes.snp_info, :idx)

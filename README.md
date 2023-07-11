@@ -32,7 +32,6 @@ ld_mat = getLDmat(data, [(1, 459876), (1, 58735), (2, 97654)])
 strong = getStrongLD(data, ["rs1234", "rs5678"])
 
 kept_v_b = clump(data, [(1, 459876), (1, 58735), (2, 97654)])
-
 ```
 
 ## TO DO

@@ -1,8 +1,30 @@
 using SnpArrays
 using Folds
+using Base.Threads
 
 """
-Function : Get strongly correlated variants from list.
+Get strongly correlated variants from list.
+
+options : 
+
+`formated` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
+`window` : maximal distance from snip for ld calculations\\
+`r2_tresh` : minimal r² for 2 snps to be considered strongly correlated.
+
+## Examples
+
+```julia
+ref = SnpData(datadir("some/data"))
+
+l::Vector{String} = getStrongLD([(1, 123), (1, 456), (1, 789)], ref, window = 250000)
+
+formatSnpData!(ref, :snpid)
+
+l::Vector{String} = getStrongLD(["rs123", "rs456", "rs789"], ref, formated = true, r2_tresh = 0.9)
+```
+
+If formatSnpData has already been called on good snp info type (`:chr_pos` or `:snpid`), `formated = true` option does not verify or modify formating.
+See [`formatSnpData!`](@ref). \\
 """
 function getStrongLD(ref_genotypes::SnpData, 
                      snps::AbstractVector{<:Tuple{Integer, Integer}}; 

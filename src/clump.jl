@@ -4,6 +4,27 @@ using Base.Threads
 """
 Implementation of the clumping algorithm prioritising first snps in given Vector and formated Genotypes SnpData (see formatSnpData!)
     returns a vector of booean indication if each given snp is kept
+
+options : 
+
+`formated` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
+`r2_tresh` : minimal r² for 2 snps to be considered strongly correlated.
+
+
+## Examples :
+
+```julia
+ref = SnpData(datadir("some/data"))
+
+kept_v_b::Vector{Bool} = clump([(1, 123), (1, 456), (1, 789)], ref)
+
+formatSnpData!(ref, :snpid)
+
+kept_v_b::Vector{Bool} = clump(["rs123", "rs456", "rs789"], ref, formated = true)
+```
+
+If formatSnpData has already been called on good snp info type (`:chr_pos` or `:snpid`), `formated = true` option does not verify or modify formating.
+See [`formatSnpData!`](@ref).
 """
 function clump(ref_genotypes::SnpData, 
                snps::AbstractVector{<:Tuple{Integer, Integer}}; 
@@ -91,6 +112,26 @@ end
 """
 threaded implementation of the clumping algorithm prioritising first snps in given Vector and formated Genotypes SnpData (see formatSnpData!)
     returns a vector of booean indication if each given snp is kept
+
+options : 
+
+`formated` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
+`r2_tresh` : minimal r² for 2 snps to be considered strongly correlated.
+
+## Examples :
+
+```julia
+ref = SnpData(datadir("some/data"))
+
+kept_v_b::Vector{Bool} = tclump([(1, 123), (1, 456), (1, 789)], ref)
+
+formatSnpData!(ref, :snpid)
+
+kept_v_b::Vector{Bool} = tclump(["rs123", "rs456", "rs789"], ref, formated = true)
+```
+
+If formatSnpData has already been called on good snp info type (`:chr_pos` or `:snpid`), `formated = true` option does not verify or modify formating.
+See [`formatSnpData!`](@ref).
 """
 function tclump(ref_genotypes::SnpData, 
                snps::AbstractVector{<:Tuple{Integer, Integer}}; 
