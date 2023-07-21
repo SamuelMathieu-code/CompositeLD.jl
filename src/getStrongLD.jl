@@ -7,14 +7,14 @@ Get strongly correlated variants from list.
 
 arguments : 
 
-`ref&#95;genotypes::SnpData` : reference genotypes (formated by [`formatSnpData!`](@ref) or not)
+`ref_genotypes::SnpData` : reference genotypes (formated by [`formatSnpData!`](@ref) or not)
 `snps::Union{AbstractVector{<:Tuple{integer, Integer}}, AbstractVector{<:AbstractString}}` : snps for which to search proxis
 
 options : 
 
 `formated::Bool` : indicates if ref SnpData is already formated according to :chr_pos (chr, pos) or :snpid (id as string)\\
 `window::Integer` : maximal distance from snip for ld calculations\\
-`r2&#95;tresh::AbstractFloat` : minimal r² for 2 snps to be considered strongly correlated.
+`r2_tresh::AbstractFloat` : minimal r² for 2 snps to be considered strongly correlated.
 
 ## Examples
 
