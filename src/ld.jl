@@ -18,6 +18,29 @@ macro HOMO_m()  # aa
     return :(0x03)
 end
 
+################## MAF ##################
+
+@inline function maf(s1)::Float64
+    m = n = N = 0
+    @inbounds for i in eachindex(s1)
+        g = s1[i]
+        if g == @HOMO_M
+            N += 2
+            m += 2
+        elseif g == @HOMO_m
+            n += 2
+            m += 2
+        elseif g == @HETER
+            n += 1
+            N +=1
+            m += 2
+        end
+    end
+
+    return min(N/m, n/m)
+end
+
+
 ############ LD calculations ############
 
 # LD r² composite of pair of SNPs given two vectors of genotypes
