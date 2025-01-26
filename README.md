@@ -7,7 +7,6 @@
 
 </div>
 
-**This repository is under developpement, any suggestion is welcome!** :smiley:
 
 ## Overview 
 
